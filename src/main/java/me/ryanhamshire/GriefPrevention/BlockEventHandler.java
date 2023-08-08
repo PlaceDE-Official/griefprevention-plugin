@@ -37,6 +37,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Dispenser;
+import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -58,6 +59,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
@@ -110,6 +112,25 @@ public class BlockEventHandler implements Listener
         this.trashBlocks.add(Material.TUFF);
         this.trashBlocks.add(Material.COBBLED_DEEPSLATE);
     }
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntityExplodeEvent(EntityExplodeEvent event) {
+        if (event.getEntity() instanceof EnderCrystal crystal) {
+            var attacked_claims = event.blockList().stream().map(
+                    block -> GriefPrevention.instance.dataStore.getClaimAt(block.getLocation(), true, null))
+                    .filter(Objects::nonNull);
+
+            var cause = crystal.getLastDamageCause();
+            if (cause != null && cause.getEntity() instanceof Player player)
+            {
+                // Filter out all claim that the causing player is allowed to build on
+                attacked_claims = attacked_claims.filter(claim -> !(claim.checkPermission(player, ClaimPermission.Build, event) == null));
+            }
+
+            if (attacked_claims.findAny().isPresent()) event.setCancelled(true);
+
+        }
+    }
+
 
     //when a player breaks a block...
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -722,6 +743,7 @@ public class BlockEventHandler implements Listener
         if (igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null)
         {
             igniteEvent.setCancelled(true); //BlockIgniteEvent is called before LightningStrikeEvent. See #532. However, see #1125 for further discussion on detecting trident-caused lightning.
+            return;
         }
 
         // If a fire is started by a fireball from a dispenser, allow it if the dispenser is in the same claim.
@@ -733,6 +755,18 @@ public class BlockEventHandler implements Listener
                 Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
                 if (claim != null && GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
                 {
+                    return;
+                }
+            }
+        }
+
+        if (igniteEvent.getCause() == IgniteCause.ENDER_CRYSTAL && igniteEvent.getIgnitingEntity() != null){
+            if (igniteEvent.getIgnitingEntity() instanceof Player player) {
+                Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
+
+                if (claim != null && claim.checkPermission(player, ClaimPermission.Build, igniteEvent) != null)
+                {
+                    igniteEvent.setCancelled(true);
                     return;
                 }
             }

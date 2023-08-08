@@ -4,6 +4,7 @@ import com.griefprevention.util.IntVector;
 import com.griefprevention.visualization.BlockBoundaryVisualization;
 import com.griefprevention.visualization.Boundary;
 import com.griefprevention.visualization.BoundaryVisualization;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World;

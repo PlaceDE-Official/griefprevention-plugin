@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import me.ryanhamshire.GriefPrevention.events.AccrueClaimBlocksEvent;
 import org.bukkit.entity.Player;
 
@@ -52,7 +53,7 @@ class DeliverClaimBlocksTask implements Runnable
             for (Player onlinePlayer : players)
             {
                 DeliverClaimBlocksTask newTask = new DeliverClaimBlocksTask(onlinePlayer, instance);
-                instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, newTask, i++);
+                instance.scheduler.runLater(onlinePlayer, newTask, i++);
             }
 
             return; //tasks started for each player
@@ -73,7 +74,7 @@ class DeliverClaimBlocksTask implements Runnable
         boolean isIdle = false;
         try
         {
-            isIdle = player.isInsideVehicle() || player.getLocation().getBlock().isLiquid() ||
+            isIdle = player.isInsideVehicle() ||  player.getLocation().getBlock().isLiquid() ||
                     !(playerData.lastAfkCheckLocation == null || playerData.lastAfkCheckLocation.distanceSquared(player.getLocation()) > idleThresholdSquared);
         }
         catch (IllegalArgumentException ignore) //can't measure distance when to/from are different worlds

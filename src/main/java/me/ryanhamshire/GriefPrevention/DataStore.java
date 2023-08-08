@@ -42,6 +42,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -608,7 +609,7 @@ public abstract class DataStore
 
     //retrieves player data from memory or secondary storage, as necessary
     //if the player has never been on the server before, this will return a fresh player data with default values
-    synchronized public PlayerData getPlayerData(UUID playerID)
+    synchronized public @NotNull PlayerData getPlayerData(UUID playerID)
     {
         //first, look in memory
         PlayerData playerData = this.playerNameToPlayerDataMap.get(playerID);
@@ -1154,7 +1155,7 @@ public abstract class DataStore
         //why isn't this a "repeating" task?
         //because depending on the status of the siege at the time the task runs, there may or may not be a reason to run the task again
         SiegeCheckupTask task = new SiegeCheckupTask(siegeData);
-        siegeData.checkupTaskID = GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task, 20L * 30);
+        siegeData.checkupTask = GriefPrevention.instance.scheduler.runLater(defenderClaim.getGreaterBoundaryCorner(), task, 20L * 30);
     }
 
     //ends a siege
@@ -1220,7 +1221,7 @@ public abstract class DataStore
         }
 
         //cancel the siege checkup task
-        GriefPrevention.instance.getServer().getScheduler().cancelTask(siegeData.checkupTaskID);
+        siegeData.checkupTask.cancel();
 
         //notify everyone who won and lost
         if (winnerName != null && loserName != null)
@@ -1241,9 +1242,9 @@ public abstract class DataStore
                 //schedule a task to secure the claims in about 5 minutes
                 SecureClaimTask task = new SecureClaimTask(siegeData);
 
-                GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(
-                        GriefPrevention.instance, task, 20L * GriefPrevention.instance.config_siege_doorsOpenSeconds
-                );
+                //TODO: This runs on the global region an has no idea about the underlying world, any block queries will fail
+                //      no idea how to fix this, send help`
+                GriefPrevention.instance.scheduler.runLater(task, 20L * GriefPrevention.instance.config_siege_doorsOpenSeconds);
             }
         }
 

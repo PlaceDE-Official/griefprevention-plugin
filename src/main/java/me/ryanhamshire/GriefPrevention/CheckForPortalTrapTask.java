@@ -26,21 +26,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 //players can be "trapped" in a portal frame if they don't have permission to break
 //solid blocks blocking them from exiting the frame
 //if that happens, we detect the problem and send them back through the portal.
-class CheckForPortalTrapTask extends BukkitRunnable
+class CheckForPortalTrapTask implements Runnable
 {
-    GriefPrevention instance;
-    //player who recently teleported via nether portal
     private final Player player;
 
     //where to send the player back to if he hasn't left the portal frame
     private final Location returnLocation;
 
-    public CheckForPortalTrapTask(Player player, GriefPrevention plugin, Location locationToReturn)
+    public CheckForPortalTrapTask(Player player, Location locationToReturn)
     {
         this.player = player;
-        this.instance = plugin;
         this.returnLocation = locationToReturn;
-        player.setMetadata("GP_PORTALRESCUE", new FixedMetadataValue(instance, locationToReturn));
+        player.setMetadata("GP_PORTALRESCUE", new FixedMetadataValue(GriefPrevention.instance, locationToReturn));
     }
 
     @Override
@@ -50,8 +47,9 @@ class CheckForPortalTrapTask extends BukkitRunnable
         {
             GriefPrevention.AddLogEntry("Rescued " + player.getName() + " from a nether portal.\nTeleported from " + player.getLocation().toString() + " to " + returnLocation.toString(), CustomLogEntryTypes.Debug);
             player.teleport(returnLocation);
-            player.removeMetadata("GP_PORTALRESCUE", instance);
+            player.removeMetadata("GP_PORTALRESCUE", GriefPrevention.instance);
         }
-        instance.portalReturnTaskMap.remove(player.getUniqueId());
+
+        GriefPrevention.instance.portalReturnTaskMap.remove(player.getUniqueId());
     }
 }
