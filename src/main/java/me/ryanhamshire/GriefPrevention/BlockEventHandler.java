@@ -145,7 +145,6 @@ public class BlockEventHandler implements Listener
         {
             GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
             breakEvent.setCancelled(true);
-            return;
         }
     }
 
@@ -155,8 +154,6 @@ public class BlockEventHandler implements Listener
     {
         Player player = event.getPlayer();
         Block sign = event.getBlock();
-
-        if (player == null || sign == null) return;
 
         String noBuildReason = GriefPrevention.instance.allowBuild(player, sign.getLocation(), sign.getType());
         if (noBuildReason != null)
@@ -190,7 +187,6 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         //if not empty and wasn't the same as the last sign, log it and remember it for later
         //This has been temporarily removed since `signMessage` includes location, not just the message. Waste of memory IMO
         //if(notEmpty && (playerData.lastSignMessage == null || !playerData.lastSignMessage.equals(signMessage)))
@@ -328,7 +324,7 @@ public class BlockEventHandler implements Listener
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimExplosivesAdvertisement);
             }
 
-            //if the player has permission for the claim and he's placing UNDER the claim
+            //if the player has permission for the claim, and he's placing UNDER the claim
             if (block.getY() <= claim.lesserBoundaryCorner.getBlockY() && claim.checkPermission(player, ClaimPermission.Build, placeEvent) == null)
             {
                 //extend the claim downward
@@ -354,7 +350,7 @@ public class BlockEventHandler implements Listener
             int radius = GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadius;
 
             //if the player doesn't have any claims yet, automatically create a claim centered at the chest
-            if (playerData.getClaims().size() == 0 && player.getGameMode() == GameMode.SURVIVAL)
+            if (playerData.getClaims().isEmpty() && player.getGameMode() == GameMode.SURVIVAL)
             {
                 //radius == 0 means protect ONLY the chest
                 if (GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadius == 0)
@@ -441,12 +437,12 @@ public class BlockEventHandler implements Listener
             }
         }
 
-        //FEATURE: warn players when they're placing non-trash blocks outside of their claimed areas
+        //FEATURE: warn players when they're placing non-trash blocks outside their claimed areas
         else if (!this.trashBlocks.contains(block.getType()) && GriefPrevention.instance.claimsEnabledForWorld(block.getWorld()))
         {
             if (!playerData.warnedAboutBuildingOutsideClaims && !player.hasPermission("griefprevention.adminclaims")
                     && player.hasPermission("griefprevention.createclaims") && ((playerData.lastClaim == null
-                    && playerData.getClaims().size() == 0) || (playerData.lastClaim != null
+                    && playerData.getClaims().isEmpty()) || (playerData.lastClaim != null
                     && playerData.lastClaim.isNear(player.getLocation(), 15))))
             {
                 Long now = null;
@@ -492,12 +488,12 @@ public class BlockEventHandler implements Listener
         //limit active blocks in creative mode worlds
         if (!player.hasPermission("griefprevention.adminclaims") && GriefPrevention.instance.creativeRulesApply(block.getLocation()) && isActiveBlock(block))
         {
+            assert claim != null;
             String noPlaceReason = claim.allowMoreActiveBlocks();
             if (noPlaceReason != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, noPlaceReason);
                 placeEvent.setCancelled(true);
-                return;
             }
         }
     }
@@ -536,7 +532,7 @@ public class BlockEventHandler implements Listener
             for (BlockFace face : HORIZONTAL_DIRECTIONS)
             {
                 Block relative = block.getRelative(face);
-                if (!(relative.getBlockData() instanceof Chest)) continue;
+                if (!(relative.getBlockData() instanceof Chest relativeChest)) continue;
 
                 Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, claim);
                 UUID relativeClaimOwner = relativeClaim == null ? null : relativeClaim.getOwnerID();
@@ -550,7 +546,6 @@ public class BlockEventHandler implements Listener
                 chest.setType(Chest.Type.SINGLE);
                 block.setBlockData(chest);
 
-                Chest relativeChest = (Chest) relative.getBlockData();
                 relativeChest.setType(Chest.Type.SINGLE);
                 relative.setBlockData(relativeChest);
 
@@ -625,7 +620,7 @@ public class BlockEventHandler implements Listener
             if (new BoundingBox(pistonClaim).contains(movedBlocks)) return;
 
             /*
-             * In claims-only mode, all moved blocks must be inside of the owning claim.
+             * In claims-only mode, all moved blocks must be inside the owning claim.
              * From BigScary:
              *  - Could push into another land claim, don't want to spend CPU checking for that
              *  - Push ice out, place torch, get water outside the claim
@@ -733,7 +728,7 @@ public class BlockEventHandler implements Listener
         }
     }
 
-    //blocks are ignited ONLY by flint and steel (not by being near lava, open flames, etc), unless configured otherwise
+    //blocks are ignited ONLY by flint and steel (not by being near lava, open flames, etc.), unless configured otherwise
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBlockIgnite(BlockIgniteEvent igniteEvent)
     {
@@ -870,7 +865,7 @@ public class BlockEventHandler implements Listener
                             block.getRelative(BlockFace.WEST)
                     };
 
-            //pro-actively put out any fires adjacent the burning block, to reduce future processing here
+            //proactively put out any fires adjacent the burning block, to reduce future processing here
             for (Block adjacentBlock : adjacentBlocks)
             {
                 if (adjacentBlock.getType() == Material.FIRE && adjacentBlock.getRelative(BlockFace.DOWN).getType() != Material.NETHERRACK)
@@ -1044,7 +1039,6 @@ public class BlockEventHandler implements Listener
         {
             event.setCancelled(true);
             GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer.get());
-            return;
         }
     }
 
@@ -1058,8 +1052,7 @@ public class BlockEventHandler implements Listener
         //from where?
         Block fromBlock = dispenseEvent.getBlock();
         BlockData fromData = fromBlock.getBlockData();
-        if (!(fromData instanceof Dispenser)) return;
-        Dispenser dispenser = (Dispenser) fromData;
+        if (!(fromData instanceof Dispenser dispenser)) return;
 
         //to where?
         Block toBlock = fromBlock.getRelative(dispenser.getFacing());
@@ -1147,7 +1140,7 @@ public class BlockEventHandler implements Listener
         UUID itemOwnerId = (UUID) meta.get(0).value();
         // Determine if the owner has unlocked their dropped items.
         // This first requires that the player is logged in.
-        if (Bukkit.getServer().getPlayer(itemOwnerId) != null)
+        if (itemOwnerId != null && Bukkit.getServer().getPlayer(itemOwnerId) != null)
         {
             PlayerData itemOwner = dataStore.getPlayerData(itemOwnerId);
             // If locked, don't allow pickup
@@ -1161,7 +1154,7 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true)
     public void onItemFrameBrokenByBoat(final HangingBreakEvent event)
     {
-        // Checks if the event is caused by physics - 90% of cases caused by a boat (other 10% would be block,
+        // Checks if the event is caused by physics - 90% of cases caused by a boat (other 10% would be blocked,
         // however since it's in a claim, unless you use a TNT block we don't need to worry about it).
         if (event.getCause() != HangingBreakEvent.RemoveCause.PHYSICS)
         {
