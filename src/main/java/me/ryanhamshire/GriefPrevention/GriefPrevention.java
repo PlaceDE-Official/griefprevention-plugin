@@ -717,7 +717,6 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_modificationTool = new ItemStack(config_claims_modification_material);
         ItemMeta itemmeta = this.config_claims_modificationTool.getItemMeta();
         itemmeta.setDisplayName(modificationToolDisplayName);
-        itemmeta.setUnbreakable(true);
         itemmeta.setCustomModelData(modificationToolModelData);
         this.config_claims_modificationTool.setItemMeta(itemmeta);
 
