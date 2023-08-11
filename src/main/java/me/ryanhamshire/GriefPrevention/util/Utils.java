@@ -19,12 +19,19 @@ public class Utils
         ItemMeta heldItemMeta = itemStack.getItemMeta();
         if (heldItemMeta == null)
             return false;
+
         ItemMeta toolMeta = GriefPrevention.instance.config_claims_modificationTool.getItemMeta();
         assert toolMeta != null;
-        return itemStack.getType() == GriefPrevention.instance.config_claims_modificationTool.getType()
-                && heldItemMeta.getCustomModelData() == toolMeta.getCustomModelData()
-                && heldItemMeta.isUnbreakable() == toolMeta.isUnbreakable()
-                && heldItemMeta.getDisplayName().equals(toolMeta.getDisplayName()
-        );
+
+        if (itemStack.getType() != GriefPrevention.instance.config_claims_modificationTool.getType()) return false;
+        if (heldItemMeta.hasDisplayName() != toolMeta.hasDisplayName()) return false;
+        if (!heldItemMeta.getDisplayName().equals(toolMeta.getDisplayName())) return false;
+
+        if (heldItemMeta.isUnbreakable() != toolMeta.isUnbreakable()) return false;
+
+        if (heldItemMeta.hasCustomModelData() != toolMeta.hasCustomModelData()) return false;
+        if (heldItemMeta.getCustomModelData() != toolMeta.getCustomModelData()) return false;
+
+        return true;
     }
 }
