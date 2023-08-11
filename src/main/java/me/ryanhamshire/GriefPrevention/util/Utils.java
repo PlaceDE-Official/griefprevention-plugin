@@ -21,7 +21,7 @@ public class Utils
             return false;
         ItemMeta toolMeta = GriefPrevention.instance.config_claims_modificationTool.getItemMeta();
         assert toolMeta != null;
-        return itemStack.getType() != GriefPrevention.instance.config_claims_modificationTool.getType()
+        return itemStack.getType() == GriefPrevention.instance.config_claims_modificationTool.getType()
                 && heldItemMeta.getCustomModelData() == toolMeta.getCustomModelData()
                 && heldItemMeta.isUnbreakable() == toolMeta.isUnbreakable()
                 && heldItemMeta.getDisplayName().equals(toolMeta.getDisplayName()
