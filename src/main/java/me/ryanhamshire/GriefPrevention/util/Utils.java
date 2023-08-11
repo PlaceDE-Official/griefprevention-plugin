@@ -20,10 +20,11 @@ public class Utils
         if (heldItemMeta == null)
             return false;
 
-        ItemMeta toolMeta = GriefPrevention.instance.config_claims_modificationTool.getItemMeta();
+        ItemStack claimtool = GriefPrevention.instance.config_claims_modificationTool;
+        ItemMeta toolMeta = claimtool.getItemMeta();
         assert toolMeta != null;
 
-        if (itemStack.getType() != GriefPrevention.instance.config_claims_modificationTool.getType()) return false;
+        if (itemStack.getType() != claimtool.getType()) return false;
         if (heldItemMeta.hasDisplayName() != toolMeta.hasDisplayName()) return false;
         if (!heldItemMeta.getDisplayName().equals(toolMeta.getDisplayName())) return false;
 
