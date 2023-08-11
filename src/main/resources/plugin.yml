@@ -45,7 +45,7 @@ commands:
       aliases: pt
       permission: griefprevention.claims
     subdivideclaims:
-      description: Switches the shovel tool to subdivision mode, used to subdivide your claims.
+      description: Switches the claim tool to subdivision mode, used to subdivide your claims.
       usage: /SubdivideClaims
       aliases: [sc, subdivideclaim]
       permission: griefprevention.claims
@@ -88,27 +88,27 @@ commands:
       aliases: [deletealluserclaimsinworld, clearuserclaimsinworld, clearalluserclaimsinworld]
       permission: griefprevention.deleteclaimsinworld
     adminclaims:
-      description: Switches the shovel tool to administrative claims mode.
+      description: Switches the claim tool to administrative claims mode.
       usage: /AdminClaims
       permission: griefprevention.adminclaims
       aliases: ac
     restorenature:
-      description: Switches the shovel tool to restoration mode.
+      description: Switches the claim tool to restoration mode.
       usage: /RestoreNature
       permission: griefprevention.restorenature
       aliases: rn
     restorenatureaggressive:
-      description: Switches the shovel tool to aggressive restoration mode.
+      description: Switches the claim tool to aggressive restoration mode.
       usage: /RestoreNatureAggressive
       permission: griefprevention.restorenatureaggressive
       aliases: rna
     restorenaturefill:
-      description: Switches the shovel tool to fill mode.
+      description: Switches the claim tool to fill mode.
       usage: /RestoreNatureFill <radius>
       permission: griefprevention.restorenatureaggressive
       aliases: rnf
     basicclaims:
-      description: Switches the shovel tool back to basic claims mode.
+      description: Switches the claim tool back to basic claims mode.
       usage: /BasicClaims
       aliases: bc
       permission: griefprevention.claims
