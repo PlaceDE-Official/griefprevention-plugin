@@ -23,6 +23,7 @@ import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.events.ClaimInspectionEvent;
 import me.ryanhamshire.GriefPrevention.util.BoundingBox;
+import me.ryanhamshire.GriefPrevention.util.Utils;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -1429,7 +1430,7 @@ class PlayerEventHandler implements Listener
         //if he's switching to the golden shovel
         int newSlot = event.getNewSlot();
         ItemStack newItemStack = player.getInventory().getItem(newSlot);
-        if (newItemStack != null && newItemStack.getType() == instance.config_claims_modificationTool)
+        if (newItemStack != null && Utils.checkHeldItem(newItemStack))
         {
             //give the player his available claim blocks count and claiming instructions, but only if he keeps the shovel equipped for a minimum time, to avoid mouse wheel spam
             if (instance.claimsEnabledForWorld(player.getWorld()))
@@ -2065,7 +2066,7 @@ class PlayerEventHandler implements Listener
             }
 
             //if it's a golden shovel
-            else if (materialInHand != instance.config_claims_modificationTool || hand != EquipmentSlot.HAND) return;
+            else if (!Utils.checkHeldItem(itemInHand) || hand != EquipmentSlot.HAND) return;
 
             event.setCancelled(true);  //GriefPrevention exclusively reserves this tool  (e.g. no grass path creation for golden shovel)
 

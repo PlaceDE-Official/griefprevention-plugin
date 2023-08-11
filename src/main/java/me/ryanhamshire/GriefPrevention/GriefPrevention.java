@@ -29,6 +29,7 @@ import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.metrics.MetricsHandler;
+import me.ryanhamshire.GriefPrevention.util.Utils;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.BanList;
 import org.bukkit.BanList.Type;
@@ -55,6 +56,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -65,6 +67,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -152,7 +155,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_claims_allowTrappedInAdminClaims;            //whether it should be allowed to use /trapped in adminclaims.
 
     public Material config_claims_investigationTool;                //which material will be used to investigate claims with a right click
-    public Material config_claims_modificationTool;                    //which material will be used to create/resize claims with a right click
+    public ItemStack config_claims_modificationTool;                    //which material will be used to create/resize claims with a right click
 
     public ArrayList<String> config_claims_commandsRequiringAccessTrust; //the list of slash commands requiring access trust when in a claim
     public boolean config_claims_supplyPlayerManual;                //whether to give new players a book with land claim help in it
@@ -689,16 +692,35 @@ public class GriefPrevention extends JavaPlugin
         //default for claim creation/modification tool
         String modificationToolMaterialName = Material.GOLDEN_SHOVEL.name();
 
-        //get modification tool from config
-        modificationToolMaterialName = config.getString("GriefPrevention.Claims.ModificationTool", modificationToolMaterialName);
+        //get modification tool data from config
+        String[] split = config.getString("GriefPrevention.Claims.ModificationTool", modificationToolMaterialName).split(";");
+        if (split.length >= 1) modificationToolMaterialName = split[0];
+        String modificationToolDisplayName = split.length >= 2 ? split[1] : "Claimtool";
+        int modificationToolModelData = 0;
+        if (split.length >= 3) {
+            try
+            {
+                modificationToolModelData = Integer.parseInt(split[2]);
+            } catch (NumberFormatException e) {
+                GriefPrevention.AddLogEntry("ERROR: Number " + split[2] + " is not a valid number.  Defaulting to the 0.  Please update your config.yml.");
+            }
+        }
 
         //validate modification tool
-        this.config_claims_modificationTool = Material.getMaterial(modificationToolMaterialName);
-        if (this.config_claims_modificationTool == null)
+        Material config_claims_modification_material = Material.getMaterial(modificationToolMaterialName);
+        if (config_claims_modification_material == null)
         {
             GriefPrevention.AddLogEntry("ERROR: Material " + modificationToolMaterialName + " not found.  Defaulting to the golden shovel.  Please update your config.yml.");
-            this.config_claims_modificationTool = Material.GOLDEN_SHOVEL;
+            config_claims_modification_material = Material.GOLDEN_SHOVEL;
         }
+
+        this.config_claims_modificationTool = new ItemStack(config_claims_modification_material);
+        ItemMeta itemmeta = this.config_claims_modificationTool.getItemMeta();
+        itemmeta.setDisplayName(modificationToolDisplayName);
+        itemmeta.setUnbreakable(true);
+        itemmeta.setCustomModelData(modificationToolModelData);
+        this.config_claims_modificationTool.setItemMeta(itemmeta);
+
 
         //default for siege worlds list
         ArrayList<String> defaultSiegeWorldNames = new ArrayList<>();
@@ -839,7 +861,13 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.MinimumArea", this.config_claims_minArea);
         outConfig.set("GriefPrevention.Claims.MaximumDepth", this.config_claims_maxDepth);
         outConfig.set("GriefPrevention.Claims.InvestigationTool", this.config_claims_investigationTool.name());
-        outConfig.set("GriefPrevention.Claims.ModificationTool", this.config_claims_modificationTool.name());
+        ItemMeta claimModificationToolMeta = this.config_claims_modificationTool.getItemMeta();
+        outConfig.set(
+                "GriefPrevention.Claims.ModificationTool",
+                this.config_claims_modificationTool.getType().name()
+                        + ";" + claimModificationToolMeta.getDisplayName()
+                        + ";" + claimModificationToolMeta.getCustomModelData()
+        );
         outConfig.set("GriefPrevention.Claims.Expiration.ChestClaimDays", this.config_claims_chestClaimExpirationDays);
         outConfig.set("GriefPrevention.Claims.Expiration.UnusedClaimDays", this.config_claims_unusedClaimExpirationDays);
         outConfig.set("GriefPrevention.Claims.Expiration.AllClaims.DaysInactive", this.config_claims_expirationDays);
@@ -1055,7 +1083,7 @@ public class GriefPrevention extends JavaPlugin
             if (playerData.getClaims().size() > 0)
             {
                 //if player has exactly one land claim, this requires the claim modification tool to be in hand (or creative mode player)
-                if (playerData.getClaims().size() == 1 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool)
+                if (playerData.getClaims().size() == 1 && player.getGameMode() != GameMode.CREATIVE && !Utils.checkHeldItem(player.getItemInHand()))
                 {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.MustHoldModificationToolForThat);
                     return true;
@@ -1067,7 +1095,7 @@ public class GriefPrevention extends JavaPlugin
             //allow for specifying the radius
             if (args.length > 0)
             {
-                if (playerData.getClaims().size() < 2 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool)
+                if (playerData.getClaims().size() < 2 && player.getGameMode() != GameMode.CREATIVE && !Utils.checkHeldItem(player.getItemInHand()))
                 {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.RadiusRequiresGoldenShovel);
                     return true;
@@ -1188,7 +1216,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //requires claim modification tool in hand
-            if (player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool)
+            if (player.getGameMode() != GameMode.CREATIVE && !Utils.checkHeldItem(player.getItemInHand()))
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.MustHoldModificationToolForThat);
                 return true;

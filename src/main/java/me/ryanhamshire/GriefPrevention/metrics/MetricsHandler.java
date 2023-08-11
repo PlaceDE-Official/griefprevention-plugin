@@ -96,7 +96,7 @@ public class MetricsHandler
         addSimplePie("pistons_only_work_in_claims", plugin.config_pistonMovement.name().toLowerCase().replace('_', ' '));
         addSimplePie("creatures_trample_crops", plugin.config_creaturesTrampleCrops);
 
-        addSimplePie("claim_tool", plugin.config_claims_modificationTool.name());
+        addSimplePie("claim_tool", plugin.config_claims_modificationTool.getType().name());
         addSimplePie("claim_inspect_tool", plugin.config_claims_investigationTool.name());
 
         addSimplePie("block_surface_creeper_explosions", plugin.config_blockSurfaceCreeperExplosions);

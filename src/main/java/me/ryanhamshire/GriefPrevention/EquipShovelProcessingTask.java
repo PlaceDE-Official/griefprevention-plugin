@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention;
 
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
+import me.ryanhamshire.GriefPrevention.util.Utils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
@@ -39,8 +40,7 @@ class EquipShovelProcessingTask implements Runnable
     @Override
     public void run()
     {
-        //if he's not holding the golden shovel anymore, do nothing
-        if (player.getInventory().getItemInMainHand().getType() != GriefPrevention.instance.config_claims_modificationTool)
+        if (!Utils.checkHeldItem(GriefPrevention.instance.getItemInHand(player, EquipmentSlot.HAND)))
             return;
 
         PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());

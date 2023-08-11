@@ -42,7 +42,7 @@ public class WelcomeTask implements Runnable
 
             page1.append(URL).append("\n\n");
             page1.append(intro).append("\n\n");
-            String editToolName = GriefPrevention.instance.config_claims_modificationTool.name().replace('_', ' ').toLowerCase();
+            String editToolName = GriefPrevention.instance.config_claims_modificationTool.getType().name().replace('_', ' ').toLowerCase();
             String infoToolName = GriefPrevention.instance.config_claims_investigationTool.name().replace('_', ' ').toLowerCase();
             String configClaimTools = datastore.getMessage(Messages.BookTools, editToolName, infoToolName);
             page1.append(configClaimTools);
