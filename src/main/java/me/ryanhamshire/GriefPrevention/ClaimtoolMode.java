@@ -18,8 +18,8 @@
 
 package me.ryanhamshire.GriefPrevention;
 
-//enumeration for golden shovel modes
-public enum ShovelMode
+//enumeration for claim tool modes
+public enum ClaimtoolMode
 {
     Basic,
     Admin,

@@ -26,13 +26,13 @@ import org.bukkit.inventory.EquipmentSlot;
 
 //tells a player about how many claim blocks he has, etc
 //implemented as a task so that it can be delayed
-//otherwise, it's spammy when players mouse-wheel past the shovel in their hot bars
-class EquipShovelProcessingTask implements Runnable
+//otherwise, it's spammy when players mouse-wheel past the claim tool in their hot bars
+class EquipClaimtoolProcessingTask implements Runnable
 {
     //player data
     private final Player player;
 
-    public EquipShovelProcessingTask(Player player)
+    public EquipClaimtoolProcessingTask(Player player)
     {
         this.player = player;
     }
@@ -46,14 +46,14 @@ class EquipShovelProcessingTask implements Runnable
         PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
 
         //reset any work he might have been doing
-        playerData.lastShovelLocation = null;
+        playerData.lastClaimtoolLocation = null;
         playerData.claimResizing = null;
 
         //always reset to basic claims mode
-        if (playerData.shovelMode != ShovelMode.Basic)
+        if (playerData.claimtoolMode != ClaimtoolMode.Basic)
         {
-            playerData.shovelMode = ShovelMode.Basic;
-            GriefPrevention.sendMessage(player, TextMode.Info, Messages.ShovelBasicClaimMode);
+            playerData.claimtoolMode = ClaimtoolMode.Basic;
+            GriefPrevention.sendMessage(player, TextMode.Info, Messages.ClaimtoolBasicClaimMode);
         }
 
         //tell him how many claim blocks he has available

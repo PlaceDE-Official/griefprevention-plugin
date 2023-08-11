@@ -59,15 +59,12 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -145,7 +142,7 @@ public class GriefPrevention extends JavaPlugin
 
     public int config_claims_automaticClaimsForNewPlayersRadius;    //how big automatic new player claims (when they place a chest) should be.  -1 to disable
     public int config_claims_automaticClaimsForNewPlayersRadiusMin; //how big automatic new player claims must be. 0 to disable
-    public int config_claims_claimsExtendIntoGroundDistance;        //how far below the shoveled block a new claim will reach
+    public int config_claims_claimsExtendIntoGroundDistance;        //how far below the claimtool'ed block a new claim will reach
     public int config_claims_minWidth;                                //minimum width for non-admin claims
     public int config_claims_minArea;                               //minimum area for non-admin claims
 
@@ -1096,7 +1093,7 @@ public class GriefPrevention extends JavaPlugin
             {
                 if (playerData.getClaims().size() < 2 && player.getGameMode() != GameMode.CREATIVE && !Utils.checkHeldItem(player.getItemInHand()))
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.RadiusRequiresGoldenShovel);
+                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.RadiusRequiresClaimtool);
                     return true;
                 }
 
@@ -1170,7 +1167,7 @@ public class GriefPrevention extends JavaPlugin
                 }
                 BoundaryVisualization.visualizeClaim(player, result.claim, VisualizationType.CLAIM);
                 playerData.claimResizing = null;
-                playerData.lastShovelLocation = null;
+                playerData.lastClaimtoolLocation = null;
 
                 AutoExtendClaimTask.scheduleAsync(result.claim);
             }
@@ -1397,9 +1394,9 @@ public class GriefPrevention extends JavaPlugin
         //restore nature
         else if (cmd.getName().equalsIgnoreCase("restorenature") && player != null)
         {
-            //change shovel mode
+            //change claim tool mode
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.RestoreNature;
+            playerData.claimtoolMode = ClaimtoolMode.RestoreNature;
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.RestoreNatureActivate);
             return true;
         }
@@ -1407,9 +1404,9 @@ public class GriefPrevention extends JavaPlugin
         //restore nature aggressive mode
         else if (cmd.getName().equalsIgnoreCase("restorenatureaggressive") && player != null)
         {
-            //change shovel mode
+            //change claim tool mode
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.RestoreNatureAggressive;
+            playerData.claimtoolMode = ClaimtoolMode.RestoreNatureAggressive;
             GriefPrevention.sendMessage(player, TextMode.Warn, Messages.RestoreNatureAggressiveActivate);
             return true;
         }
@@ -1417,9 +1414,9 @@ public class GriefPrevention extends JavaPlugin
         //restore nature fill mode
         else if (cmd.getName().equalsIgnoreCase("restorenaturefill") && player != null)
         {
-            //change shovel mode
+            //change claim tool mode
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.RestoreNatureFill;
+            playerData.claimtoolMode = ClaimtoolMode.RestoreNatureFill;
 
             //set radius based on arguments
             playerData.fillRadius = 2;
@@ -2003,7 +2000,7 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("adminclaims") && player != null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.Admin;
+            playerData.claimtoolMode = ClaimtoolMode.Admin;
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.AdminClaimsMode);
 
             return true;
@@ -2013,7 +2010,7 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("basicclaims") && player != null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.Basic;
+            playerData.claimtoolMode = ClaimtoolMode.Basic;
             playerData.claimSubdividing = null;
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.BasicClaimsMode);
 
@@ -2024,7 +2021,7 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("subdivideclaims") && player != null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            playerData.shovelMode = ShovelMode.Subdivide;
+            playerData.claimtoolMode = ClaimtoolMode.Subdivide;
             playerData.claimSubdividing = null;
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SubdivisionMode);
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SubdivisionVideo2, DataStore.SUBDIVISION_VIDEO_URL);

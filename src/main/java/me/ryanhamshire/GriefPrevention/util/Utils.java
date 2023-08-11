@@ -13,7 +13,7 @@ public class Utils
 
     public static boolean checkHeldItem(ItemStack itemStack)
     {
-        //if he's not holding the golden shovel anymore, do nothing
+        //if he's not holding the claim tool anymore, do nothing
         if (itemStack == null)
             return false;
         ItemMeta heldItemMeta = itemStack.getItemMeta();

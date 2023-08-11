@@ -51,15 +51,15 @@ public class PlayerData
     //how many claim blocks the player has been gifted by admins, or purchased via economy integration
     private Integer bonusClaimBlocks = null;
 
-    //what "mode" the shovel is in determines what it will do when it's used
-    public ShovelMode shovelMode = ShovelMode.Basic;
+    //what "mode" the claim tool is in determines what it will do when it's used
+    public ClaimtoolMode claimtoolMode = ClaimtoolMode.Basic;
 
     //radius for restore nature fill mode
     int fillRadius = 0;
 
-    //last place the player used the shovel, useful in creating and resizing claims,
-    //because the player must use the shovel twice in those instances
-    public Location lastShovelLocation = null;
+    //last place the player used the claim tool, useful in creating and resizing claims,
+    //because the player must use the claim tool twice in those instances
+    public Location lastClaimtoolLocation = null;
 
     //the claim this player is currently resizing
     public Claim claimResizing = null;
