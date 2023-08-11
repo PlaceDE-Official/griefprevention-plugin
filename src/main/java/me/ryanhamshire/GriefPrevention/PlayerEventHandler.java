@@ -1589,7 +1589,13 @@ class PlayerEventHandler implements Listener
     {
         //not interested in left-click-on-air actions
         Action action = event.getAction();
+        if ((action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) && Utils.checkHeldItem(event.getItem())) {
+            event.setCancelled(true);
+            return;
+        }
         if (action == Action.LEFT_CLICK_AIR) return;
+
+
 
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock(); //null returned here means interacting with air
